@@ -1,90 +1,83 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from pydantic import BaseModel
+from typing import Optional, List
+import os
+import sys
+
+# Inject packages path
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../../packages/ai-agents"))
+
+from router.agent_router import AgentRouter
+from tools.file_reader import FileReaderTool
+from tools.file_writer import FileWriterTool
+from tools.shell_executor import ShellTool
+from tools.repo_search import RepoSearchTool
+
 from database.connection import get_db
-from agents.code_agent import CodeAgent
-from agents.debug_agent import DebugAgent
-from agents.devops_agent import DevOpsAgent
-from agents.doc_agent import DocumentationAgent
+from sqlalchemy.orm import Session
+from services.search_service import SearchService
+from routes.auth import get_current_user
 from utils.logger import logger
 
 router = APIRouter()
 
-# Initialize agents
-code_agent = CodeAgent()
-debug_agent = DebugAgent()
-devops_agent = DevOpsAgent()
-doc_agent = DocumentationAgent()
+class AgentRunRequest(BaseModel):
+    task: str
+    repo_id: Optional[int] = None
 
+class AgentResponse(BaseModel):
+    category: str
+    response: str
 
-@router.post("/code/generate")
-async def generate_code(
-    prompt: str,
-    language: str = "python",
-    db: Session = Depends(get_db)
+def get_agent_router(db: Session = Depends(get_db)):
+    # Initialize tools with repo root
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+    
+    tools = {
+        "file_reader": FileReaderTool(repo_root),
+        "file_writer": FileWriterTool(repo_root),
+        "shell_executor": ShellTool(repo_root),
+        "repo_search": RepoSearchTool(lambda: SearchService(db))
+    }
+    return AgentRouter(tools)
+
+@router.post("/run", response_model=AgentResponse)
+async def run_agent(
+    request: AgentRunRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    router: AgentRouter = Depends(get_agent_router)
 ):
-    """Generate code using AI agent"""
+    """Route a task to the appropriate AI agent"""
     try:
-        result = await code_agent.generate_code(prompt, language)
-        return {"success": True, "code": result}
+        # Classify and run
+        category = await router._classify_task(request.task)
+        response = await router.route(request.task, request.repo_id)
+        
+        return {
+            "category": category,
+            "response": response
+        }
     except Exception as e:
-        logger.error(f"Code generation error: {e}")
+        logger.error(f"Agent execution error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/code")
+async def run_code_agent(request: AgentRunRequest, r: AgentRouter = Depends(get_agent_router)):
+    res = await r.agents["code"].run(request.task, request.repo_id)
+    return {"response": res}
 
-@router.post("/code/review")
-async def review_code(
-    code: str,
-    language: str = "python",
-    db: Session = Depends(get_db)
-):
-    """Review code using AI agent"""
-    try:
-        result = await code_agent.review_code(code, language)
-        return {"success": True, "review": result}
-    except Exception as e:
-        logger.error(f"Code review error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/debug")
+async def run_debug_agent(request: AgentRunRequest, r: AgentRouter = Depends(get_agent_router)):
+    res = await r.agents["debug"].run(request.task, request.repo_id)
+    return {"response": res}
 
+@router.post("/refactor")
+async def run_refactor_agent(request: AgentRunRequest, r: AgentRouter = Depends(get_agent_router)):
+    res = await r.agents["refactor"].run(request.task, request.repo_id)
+    return {"response": res}
 
-@router.post("/debug/analyze")
-async def analyze_error(
-    error_message: str,
-    code_context: str = "",
-    db: Session = Depends(get_db)
-):
-    """Analyze and suggest fixes for errors"""
-    try:
-        result = await debug_agent.analyze_error(error_message, code_context)
-        return {"success": True, "analysis": result}
-    except Exception as e:
-        logger.error(f"Debug analysis error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/devops/deploy")
-async def deploy_application(
-    config: dict,
-    db: Session = Depends(get_db)
-):
-    """Deploy application using DevOps agent"""
-    try:
-        result = await devops_agent.deploy(config)
-        return {"success": True, "deployment": result}
-    except Exception as e:
-        logger.error(f"Deployment error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/docs/generate")
-async def generate_documentation(
-    code: str,
-    doc_type: str = "api",
-    db: Session = Depends(get_db)
-):
-    """Generate documentation for code"""
-    try:
-        result = await doc_agent.generate_docs(code, doc_type)
-        return {"success": True, "documentation": result}
-    except Exception as e:
-        logger.error(f"Documentation generation error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/tests")
+async def run_test_agent(request: AgentRunRequest, r: AgentRouter = Depends(get_agent_router)):
+    res = await r.agents["test"].run(request.task, request.repo_id)
+    return {"response": res}

@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 from config import settings
 from database.connection import engine, Base
-from routes import agents, repo, analytics, voice, vision, auth
+from routes import agents, repo, autocode, analytics, voice, vision, auth
+import os
 from utils.logger import logger
 
 
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(repo.router, prefix="/api/v1/repo", tags=["repository"])
+app.include_router(autocode.router, prefix="/api/v1/autocode", tags=["autocode"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(voice.router, prefix="/api/v1/voice", tags=["voice"])
 app.include_router(vision.router, prefix="/api/v1/vision", tags=["vision"])

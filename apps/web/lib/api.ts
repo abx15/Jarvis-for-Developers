@@ -304,6 +304,130 @@ class ApiClient {
     return !!this.getToken();
   }
 
+  // Repository methods
+  async connectRepo(owner: string, repoName: string, description: string = ''): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/repo/connect', {
+        owner,
+        repo_name: repoName,
+        description,
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async indexRepo(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.post(`/api/v1/repo/${repoId}/index`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async listRepos(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/repo/list');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getRepoFiles(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/repo/${repoId}/files`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async searchRepo(repoId: number, query: string): Promise<any> {
+    try {
+      const response = await this.client.post(`/api/v1/repo/${repoId}/search`, { query });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // AI Agent methods
+  async runAgent(task: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/run', { task, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async runCodeAgent(task: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/code', { task, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async runDebugAgent(task: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/debug', { task, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async runRefactorAgent(task: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/refactor', { task, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async runTestAgent(task: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/tests', { task, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // AutoCode methods
+  async getCodePlan(prompt: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/autocode/plan', { prompt, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async executeCodeStep(step: any, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/autocode/execute', step, { params: { repo_id: repoId } });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async applyCodeChanges(changes: { path: string, content: string }[]): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/autocode/apply', changes);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   private handleError(error: any): Error {
     if (error.response) {
       // Server responded with error status
@@ -338,4 +462,19 @@ export const {
   getStoredUser,
   isAuthenticated,
   clearTokens,
+  connectRepo,
+  indexRepo,
+  listRepos,
+  getRepoFiles,
+  searchRepo,
+  runAgent,
+  runCodeAgent,
+  runDebugAgent,
+  runRefactorAgent,
+  runTestAgent,
+  getCodePlan,
+  executeCodeStep,
+  applyCodeChanges,
 } = apiClient;
+
+export default apiClient;

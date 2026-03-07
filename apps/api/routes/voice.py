@@ -10,40 +10,27 @@ router = APIRouter()
 voice_service = VoiceService()
 
 
-@router.post("/speech-to-text")
-async def speech_to_text(
+@router.post("/transcribe")
+async def transcribe_audio(
     audio_file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    """Convert speech to text"""
+    """Convert speech to text (Transcription)"""
     try:
-        # Save uploaded audio file
+        # Create uploads directory if it doesn't exist
+        os.makedirs("uploads/voice", exist_ok=True)
+        
         file_path = f"uploads/voice/{audio_file.filename}"
         with open(file_path, "wb") as buffer:
             content = await audio_file.read()
             buffer.write(content)
         
         # Convert speech to text
-        result = await voice_service.speech_to_text(file_path)
+        text = await voice_service.speech_to_text(file_path)
         
-        return {"success": True, "text": result}
+        return {"success": True, "text": text}
     except Exception as e:
-        logger.error(f"Speech to text error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/text-to-speech")
-async def text_to_speech(
-    text: str,
-    voice: str = "default",
-    db: Session = Depends(get_db)
-):
-    """Convert text to speech"""
-    try:
-        result = await voice_service.text_to_speech(text, voice)
-        return {"success": True, "audio_url": result}
-    except Exception as e:
-        logger.error(f"Text to speech error: {e}")
+        logger.error(f"Transcription error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -53,29 +40,10 @@ async def process_voice_command(
     context: dict = {},
     db: Session = Depends(get_db)
 ):
-    """Process voice command"""
+    """Process voice command transcript to detect intent and routing"""
     try:
         result = await voice_service.process_command(command, context)
-        return {"success": True, "result": result}
+        return {"success": True, "command": command, "analysis": result}
     except Exception as e:
         logger.error(f"Voice command processing error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/wake-word")
-async def detect_wake_word(
-    audio_file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    """Detect wake word in audio"""
-    try:
-        file_path = f"uploads/voice/{audio_file.filename}"
-        with open(file_path, "wb") as buffer:
-            content = await audio_file.read()
-            buffer.write(content)
-        
-        result = await voice_service.detect_wake_word(file_path)
-        return {"success": True, "detected": result}
-    except Exception as e:
-        logger.error(f"Wake word detection error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
