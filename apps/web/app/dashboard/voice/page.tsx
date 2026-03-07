@@ -10,8 +10,9 @@ import { VoiceCommandExecutor } from '@/components/voice/VoiceCommandExecutor'
 
 export default function VoiceCodingPage() {
   const [lastCommand, setLastCommand] = useState<string>('')
+  const [selectedRepo, setSelectedRepo] = useState<number | null>(null)
   const [history, setHistory] = useState<
-    Array<{ command: string; time: string; status: string }>
+    Array<{ command: string; time: string; status: string; result?: any }>
   >([])
 
   const {
@@ -91,9 +92,10 @@ export default function VoiceCodingPage() {
 
           <VoiceCommandExecutor
             command={lastCommand}
+            repoId={selectedRepo}
             onComplete={status => {
-              setHistory(prev =>
-                prev.map((item, i) => (i === 0 ? { ...item, status } : item))
+              setHistory((prev: any) =>
+                prev.map((item: any, i: number) => (i === 0 ? { ...item, status } : item))
               )
             }}
           />
