@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     
+    # OAuth
+    GITHUB_CLIENT_ID: Optional[str] = None
+    GITHUB_CLIENT_SECRET: Optional[str] = None
+    GITHUB_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/github/callback"
+    OAUTH_STATE_SECRET: str = "your-oauth-state-secret-change-in-production"
+    
     # WebSocket
     WS_HEARTBEAT_INTERVAL: int = 30
     
