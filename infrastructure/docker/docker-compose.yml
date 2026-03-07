@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with pgvector
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ai-dev-os-postgres
+    environment:
+      POSTGRES_DB: ai_dev_os
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ai-dev-os-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: ai-dev-os-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai-dev-os-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: ../../infrastructure/docker/Dockerfile.api
+    container_name: ai-dev-os-api
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/ai_dev_os
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../../apps/api:/app
+      - uploads_data:/app/uploads
+    networks:
+      - ai-dev-os-network
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: ../../infrastructure/docker/Dockerfile.web
+    container_name: ai-dev-os-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ../../apps/web:/app
+      - /app/node_modules
+    networks:
+      - ai-dev-os-network
+
+  # Repository Analyzer Service
+  repo-analyzer:
+    build:
+      context: ../../services/repo-analyzer
+      dockerfile: ../../infrastructure/docker/Dockerfile.service
+    container_name: ai-dev-os-repo-analyzer
+    ports:
+      - "8001:8001"
+    volumes:
+      - ../../services/repo-analyzer:/app
+      - repos_data:/app/repos
+    networks:
+      - ai-dev-os-network
+
+  # Voice Engine Service
+  voice-engine:
+    build:
+      context: ../../services/voice-engine
+      dockerfile: ../../infrastructure/docker/Dockerfile.service
+    container_name: ai-dev-os-voice-engine
+    ports:
+      - "8002:8002"
+    volumes:
+      - ../../services/voice-engine:/app
+      - audio_data:/app/audio
+    networks:
+      - ai-dev-os-network
+
+  # Vision Engine Service
+  vision-engine:
+    build:
+      context: ../../services/vision-engine
+      dockerfile: ../../infrastructure/docker/Dockerfile.service
+    container_name: ai-dev-os-vision-engine
+    ports:
+      - "8003:8003"
+    volumes:
+      - ../../services/vision-engine:/app
+      - images_data:/app/images
+    networks:
+      - ai-dev-os-network
+
+  # Embedding Engine Service
+  embedding-engine:
+    build:
+      context: ../../services/embedding-engine
+      dockerfile: ../../infrastructure/docker/Dockerfile.service
+    container_name: ai-dev-os-embedding-engine
+    ports:
+      - "8004:8004"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ../../services/embedding-engine:/app
+      - embeddings_data:/app/embeddings
+    networks:
+      - ai-dev-os-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ai-dev-os-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+      - api
+    networks:
+      - ai-dev-os-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+  repos_data:
+  audio_data:
+  images_data:
+  embeddings_data:
+
+networks:
+  ai-dev-os-network:
+    driver: bridge

@@ -1,0 +1,28 @@
+{
+  "name": "@ai-dev-os/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "db:migrate": "alembic upgrade head",
+    "db:seed": "python scripts/seed.py"
+  },
+  "dependencies": {
+    "sqlalchemy": "^2.0.0",
+    "alembic": "^1.13.0",
+    "psycopg2": "^3.1.0",
+    "pgvector": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3"
+  }
+}
