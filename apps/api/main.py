@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from config import settings
 from database.connection import engine, Base
-from routes import agents, repo, autocode, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, agents_orchestrator, editor_collab, devops
+from routes import agents, repo, autocode, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, agents_orchestrator, editor_collab, devops, billing, stripe_webhook
 import os
 from utils.logger import logger
 
@@ -50,6 +50,8 @@ app.include_router(ai_bugs.router, prefix="/api/v1/ai", tags=["bugs"])
 app.include_router(agents_orchestrator.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(editor_collab.router, prefix="/api/v1/editor", tags=["editor_collaboration"])
 app.include_router(devops.router, prefix="/api/v1/devops", tags=["devops"])
+app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
+app.include_router(stripe_webhook.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 
 
 @app.get("/")

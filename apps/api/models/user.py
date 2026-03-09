@@ -22,6 +22,9 @@ class User(Base):
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
     analytics_events = relationship("AnalyticsEvent", back_populates="user", cascade="all, delete-orphan")
     ai_usage = relationship("AIUsage", back_populates="user", cascade="all, delete-orphan")
+    subscription = relationship("Subscription", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    usage_logs = relationship("UsageLogs", back_populates="user", cascade="all, delete-orphan")
+    billing_invoices = relationship("BillingInvoice", back_populates="user", cascade="all, delete-orphan")
 
 
 class Session(Base):

@@ -226,3 +226,79 @@ COMMENT ON COLUMN devops_deployments.deployment_type IS 'Type of deployment (doc
 COMMENT ON COLUMN devops_deployments.deployment_target IS 'Target environment or platform';
 COMMENT ON COLUMN devops_deployments.deployment_status IS 'Current status of deployment';
 COMMENT ON COLUMN devops_deployments.deployment_log IS 'Deployment logs and output';
+
+-- Subscriptions table for SaaS billing
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    plan_type VARCHAR(50) NOT NULL DEFAULT 'free', -- 'free', 'pro', 'team'
+    stripe_customer_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255),
+    status VARCHAR(50) NOT NULL DEFAULT 'active', -- 'active', 'canceled', 'past_due', 'unpaid'
+    current_period_start TIMESTAMP WITH TIME ZONE,
+    current_period_end TIMESTAMP WITH TIME ZONE,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    UNIQUE(user_id) -- One subscription per user
+);
+
+-- Usage logs table for tracking feature usage
+CREATE TABLE IF NOT EXISTS usage_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    feature VARCHAR(100) NOT NULL, -- 'ai_requests', 'ai_tokens', 'repo_scans', 'agent_executions'
+    usage_count INTEGER NOT NULL DEFAULT 1,
+    metadata JSONB, -- Additional usage metadata
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Billing invoices table for tracking payment history
+CREATE TABLE IF NOT EXISTS billing_invoices (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    stripe_invoice_id VARCHAR(255) UNIQUE,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'usd',
+    status VARCHAR(50) NOT NULL, -- 'draft', 'open', 'paid', 'void', 'uncollectible'
+    due_date TIMESTAMP WITH TIME ZONE,
+    paid_at TIMESTAMP WITH TIME ZONE,
+    hosted_invoice_url TEXT,
+    invoice_pdf TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for billing tables
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_type ON subscriptions(plan_type);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_customer_id ON subscriptions(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_user_id ON usage_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_feature ON usage_logs(feature);
+CREATE INDEX IF NOT EXISTS idx_usage_logs_timestamp ON usage_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices_user_id ON billing_invoices(user_id);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices_status ON billing_invoices(status);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices_stripe_invoice_id ON billing_invoices(stripe_invoice_id);
+
+-- Trigger for subscriptions table
+CREATE TRIGGER update_subscriptions_updated_at 
+    BEFORE UPDATE ON subscriptions 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Comments for billing tables
+COMMENT ON TABLE subscriptions IS 'User subscription plans and billing information';
+COMMENT ON TABLE usage_logs IS 'Usage tracking for billing and limits';
+COMMENT ON TABLE billing_invoices IS 'Payment history and invoice records';
+COMMENT ON COLUMN subscriptions.plan_type IS 'Subscription plan (free, pro, team)';
+COMMENT ON COLUMN subscriptions.stripe_customer_id IS 'Stripe customer identifier';
+COMMENT ON COLUMN subscriptions.stripe_subscription_id IS 'Stripe subscription identifier';
+COMMENT ON COLUMN subscriptions.status IS 'Subscription status (active, canceled, past_due, unpaid)';
+COMMENT ON COLUMN usage_logs.feature IS 'Feature being tracked (ai_requests, ai_tokens, repo_scans, agent_executions)';
+COMMENT ON COLUMN usage_logs.usage_count IS 'Number of usage units consumed';
+COMMENT ON COLUMN usage_logs.metadata IS 'Additional usage context and metadata';
+COMMENT ON COLUMN billing_invoices.amount IS 'Invoice amount in specified currency';
+COMMENT ON COLUMN billing_invoices.status IS 'Invoice status (draft, open, paid, void, uncollectible)';
+COMMENT ON COLUMN billing_invoices.stripe_invoice_id IS 'Stripe invoice identifier';
