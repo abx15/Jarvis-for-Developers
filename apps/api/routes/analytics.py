@@ -3,62 +3,55 @@ from sqlalchemy.orm import Session
 from database.connection import get_db
 from services.analytics_service import AnalyticsService
 from utils.logger import logger
+import redis
 
 router = APIRouter()
 
-# Initialize service
-analytics_service = AnalyticsService()
+# Redis connection
+redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 
-@router.get("/dashboard")
-async def get_dashboard_analytics(db: Session = Depends(get_db)):
-    """Get dashboard analytics"""
+@router.get("/overview")
+async def get_analytics_overview(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get overall productivity and AI usage metrics"""
     try:
-        analytics = await analytics_service.get_dashboard_data()
-        return {"success": True, "analytics": analytics}
+        analytics_service = AnalyticsService(db, redis_client)
+        return await analytics_service.get_productivity_overview(current_user.id)
     except Exception as e:
-        logger.error(f"Dashboard analytics error: {e}")
+        logger.error(f"Overview analytics error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/productivity")
-async def get_productivity_metrics(
-    user_id: int = None,
-    timeframe: str = "week",
+@router.get("/repo-health/{repo_id}")
+async def get_repo_health(
+    repo_id: int,
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get productivity metrics"""
+    """Get health and complexity metrics for a specific repo"""
     try:
-        metrics = await analytics_service.get_productivity_metrics(user_id, timeframe)
-        return {"success": True, "metrics": metrics}
+        analytics_service = AnalyticsService(db, redis_client)
+        return await analytics_service.get_repo_health(repo_id)
     except Exception as e:
-        logger.error(f"Productivity metrics error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/code-insights")
-async def get_code_insights(
-    repo_id: int = None,
-    db: Session = Depends(get_db)
-):
-    """Get code insights and patterns"""
-    try:
-        insights = await analytics_service.get_code_insights(repo_id)
-        return {"success": True, "insights": insights}
-    except Exception as e:
-        logger.error(f"Code insights error: {e}")
+        logger.error(f"Repo health error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/track")
 async def track_event(
     event_data: dict,
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Track development events"""
+    """Track development events manually from frontend"""
     try:
-        await analytics_service.track_event(event_data)
-        return {"success": True, "message": "Event tracked"}
+        analytics_service = AnalyticsService(db, redis_client)
+        event_type = event_data.get("event_type", "UI_INTERACTION")
+        success = await analytics_service.track_event(current_user.id, event_type, event_data)
+        return {"success": success}
     except Exception as e:
         logger.error(f"Event tracking error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

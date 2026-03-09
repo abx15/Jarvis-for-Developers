@@ -2,7 +2,6 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from models.repo_memory import File, CodeChunk
 from services.github_service import GitHubService
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from utils.logger import logger
 
 
@@ -11,13 +10,21 @@ class RepoIndexer:
         self.db = db
         self.github_service = GitHubService(github_token)
         
-        # Initialize text splitter for code chunking
-        # We use a relatively small chunk size with overlap for better semantic search context
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            separators=["\nclass ", "\ndef ", "\nfunction ", "\nconst ", "\nlet ", "\nvar ", "\n\n", "\n", " ", ""]
-        )
+        # Simple text splitter implementation
+        def split_text(text, chunk_size=1000, chunk_overlap=200):
+            chunks = []
+            start = 0
+            while start < len(text):
+                end = start + chunk_size
+                if end > len(text):
+                    end = len(text)
+                chunks.append(text[start:end])
+                start = end - chunk_overlap
+                if start < 0:
+                    start = 0
+            return chunks
+        
+        self.text_splitter = split_text
 
     async def index_repository(self, owner: str, repo_name: str, db_repo_id: int) -> Dict[str, Any]:
         """Fetch, chunk, and index an entire repository"""

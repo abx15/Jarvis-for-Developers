@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database with pgvector
   postgres:
@@ -34,10 +32,8 @@ services:
       context: ../../apps/api
       dockerfile: ../../infrastructure/docker/Dockerfile.api
     container_name: ai-dev-os-api
-    environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/ai_dev_os
-      REDIS_URL: redis://redis:6379
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    env_file:
+      - ../../apps/api/.env
     ports:
       - "8000:8000"
     depends_on:
@@ -55,8 +51,8 @@ services:
       context: ../../apps/web
       dockerfile: ../../infrastructure/docker/Dockerfile.web
     container_name: ai-dev-os-web
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+    env_file:
+      - ../../apps/web/.env.local
     ports:
       - "3000:3000"
     depends_on:
@@ -73,6 +69,8 @@ services:
       context: ../../services/repo-analyzer
       dockerfile: ../../infrastructure/docker/Dockerfile.service
     container_name: ai-dev-os-repo-analyzer
+    env_file:
+      - ../../services/repo-analyzer/.env
     ports:
       - "8001:8001"
     volumes:
@@ -87,6 +85,8 @@ services:
       context: ../../services/voice-engine
       dockerfile: ../../infrastructure/docker/Dockerfile.service
     container_name: ai-dev-os-voice-engine
+    env_file:
+      - ../../services/voice-engine/.env
     ports:
       - "8002:8002"
     volumes:
@@ -101,6 +101,8 @@ services:
       context: ../../services/vision-engine
       dockerfile: ../../infrastructure/docker/Dockerfile.service
     container_name: ai-dev-os-vision-engine
+    env_file:
+      - ../../services/vision-engine/.env
     ports:
       - "8003:8003"
     volumes:
@@ -115,10 +117,10 @@ services:
       context: ../../services/embedding-engine
       dockerfile: ../../infrastructure/docker/Dockerfile.service
     container_name: ai-dev-os-embedding-engine
+    env_file:
+      - ../../services/embedding-engine/.env
     ports:
       - "8004:8004"
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - ../../services/embedding-engine:/app
       - embeddings_data:/app/embeddings

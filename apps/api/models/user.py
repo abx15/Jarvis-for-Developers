@@ -20,6 +20,8 @@ class User(Base):
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     repos = relationship("Repo", back_populates="user", cascade="all, delete-orphan")
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
+    analytics_events = relationship("AnalyticsEvent", back_populates="user", cascade="all, delete-orphan")
+    ai_usage = relationship("AIUsage", back_populates="user", cascade="all, delete-orphan")
 
 
 class Session(Base):
@@ -50,6 +52,9 @@ class Repo(Base):
 
     # Relationships
     user = relationship("User", back_populates="repos")
+    commit_stats = relationship("CommitStat", back_populates="repo", cascade="all, delete-orphan")
+    pull_requests = relationship("PullRequest", back_populates="repo", cascade="all, delete-orphan")
+    bugs = relationship("Bug", back_populates="repo", cascade="all, delete-orphan")
 
 
 class Account(Base):

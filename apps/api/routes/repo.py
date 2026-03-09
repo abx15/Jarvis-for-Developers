@@ -26,6 +26,10 @@ class ChatResponse(BaseModel):
     results: list
     answer: str
 
+class UpdateFileRequest(BaseModel):
+    file_path: str
+    content: str
+
 # Endpoints
 @router.post("/connect")
 async def connect_repository(
@@ -148,3 +152,38 @@ async def search_repository(
     except Exception as e:
         logger.error(f"Repository search error: {e}")
         raise HTTPException(status_code=500, detail="Search failed")
+
+
+@router.post("/{repo_id}/update-file")
+async def update_repository_file(
+    repo_id: int,
+    request: UpdateFileRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Save changes to a file in the repository (local DB update for now)"""
+    from models.repo_memory import File
+    repo = db.query(Repo).filter(Repo.id == repo_id, Repo.user_id == current_user.id).first()
+    if not repo:
+        raise HTTPException(status_code=404, detail="Repository not found")
+        
+    file_record = db.query(File).filter(File.repo_id == repo_id, File.file_path == request.file_path).first()
+    if not file_record:
+        # Create new file if it doesn't exist
+        file_record = File(
+            repo_id=repo_id,
+            file_path=request.file_path,
+            content=request.content,
+            language=request.file_path.split('.')[-1] if '.' in request.file_path else "text"
+        )
+        db.add(file_record)
+    else:
+        file_record.content = request.content
+        
+    try:
+        db.commit()
+        return {"success": True, "message": f"File {request.file_path} saved successfully"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Save file error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save file")

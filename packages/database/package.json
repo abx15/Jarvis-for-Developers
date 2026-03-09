@@ -13,12 +13,7 @@
     "db:migrate": "alembic upgrade head",
     "db:seed": "python scripts/seed.py"
   },
-  "dependencies": {
-    "sqlalchemy": "^2.0.0",
-    "alembic": "^1.13.0",
-    "psycopg2": "^3.1.0",
-    "pgvector": "^0.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.11.0",
     "eslint": "^8.56.0",

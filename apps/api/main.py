@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from config import settings
 from database.connection import engine, Base
-from routes import agents, repo, autocode, analytics, voice, vision, auth
+from routes import agents, repo, autocode, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, agents_orchestrator
 import os
 from utils.logger import logger
 
@@ -43,6 +43,11 @@ app.include_router(autocode.router, prefix="/api/v1/autocode", tags=["autocode"]
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(voice.router, prefix="/api/v1/voice", tags=["voice"])
 app.include_router(vision.router, prefix="/api/v1/vision", tags=["vision"])
+app.include_router(gesture.router, prefix="/api/v1/gesture", tags=["gesture"])
+app.include_router(editor.router, prefix="/api/v1/editor", tags=["editor"])
+app.include_router(github.router, prefix="/api/v1/github", tags=["github"])
+app.include_router(ai_bugs.router, prefix="/api/v1/ai", tags=["bugs"])
+app.include_router(agents_orchestrator.router, prefix="/api/v1/agents", tags=["agents"])
 
 
 @app.get("/")

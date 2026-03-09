@@ -55,6 +55,17 @@ export interface ConnectedAccount {
   created_at: string;
 }
 
+export interface GestureDetectRequest {
+  gesture: string
+  confidence?: number
+  meta?: Record<string, any>
+}
+
+export interface GestureActionRequest {
+  action: string
+  payload?: Record<string, any>
+}
+
 // API Client Class
 class ApiClient {
   private client: AxiosInstance;
@@ -428,6 +439,192 @@ class ApiClient {
     }
   }
 
+  // Gesture methods
+  async gestureDetect(request: GestureDetectRequest): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/gesture/detect', request)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async gestureAction(request: GestureActionRequest): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/gesture/action', request)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  // Analytics methods
+  async getAnalyticsOverview(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/analytics/overview')
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getRepoHealth(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/analytics/repo-health/${repoId}`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async trackEvent(eventType: string, eventData: Record<string, any> = {}): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/analytics/track', { event_type: eventType, ...eventData })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  // Editor methods
+  async getRepositoryFiles(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/repo/${repoId}/files`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async saveFile(repoId: number, filePath: string, content: string): Promise<any> {
+    try {
+      const response = await this.client.post(`/api/v1/repo/${repoId}/update-file`, { file_path: filePath, content })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getEditorSuggestions(repoId: number, data: any): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/editor/suggest', data)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async refactorCode(data: any): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/editor/refactor', data)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async explainCode(data: any): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/editor/explain', data)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  // GitHub methods
+  async listRepositories(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/repo/list')
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getPullRequests(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/github/pull-requests/${repoId}`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async reviewPR(repoId: number, prNumber: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/github/review-pr', { repo_id: repoId, pr_number: prNumber })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async analyzeIssue(repoId: number, issueData: any): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/github/analyze-issue', { repo_id: repoId, ...issueData })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  // AI Bug methods
+  async scanRepo(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/ai/scan-repo', { repo_id: repoId })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getBugs(repoId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/ai/bugs/${repoId}`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getBugDetails(bugId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/ai/bug/${bugId}`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async autoFix(bugId: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/ai/auto-fix', { bug_id: bugId })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  // Multi-Agent methods
+  async runAgentTask(repoId: number, task: string): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/agents/task', { repo_id: repoId, task })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async getAgentHistory(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/agents/history')
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   private handleError(error: any): Error {
     if (error.response) {
       // Server responded with error status
@@ -475,6 +672,8 @@ export const {
   getCodePlan,
   executeCodeStep,
   applyCodeChanges,
+  gestureDetect,
+  gestureAction,
 } = apiClient;
 
 export default apiClient;
