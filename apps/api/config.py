@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # WebSocket
     WS_HEARTBEAT_INTERVAL: int = 30
     
+    # Stripe billing
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLIC_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    
     class Config:
         env_file = ".env"
 

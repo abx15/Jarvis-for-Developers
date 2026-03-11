@@ -625,6 +625,79 @@ class ApiClient {
     }
   }
 
+  // Billing methods
+  async createSubscription(planType: string): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/billing/create-subscription', { plan_type: planType });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateSubscription(planType: string): Promise<any> {
+    try {
+      const response = await this.client.put('/api/v1/billing/update-subscription', { plan_type: planType });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async cancelSubscription(atPeriodEnd: boolean = true): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/billing/cancel-subscription', { at_period_end: atPeriodEnd });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getSubscription(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/billing/subscription');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getUsageStats(): Promise<any> {
+    try {
+      const response = await this.client.get('/api/v1/billing/usage');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getAvailablePlans(): Promise<any[]> {
+    try {
+      const response = await this.client.get('/api/v1/billing/plans');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getBillingInvoices(): Promise<any[]> {
+    try {
+      const response = await this.client.get('/api/v1/billing/invoices');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async createBillingPortalSession(): Promise<{ portal_url: string }> {
+    try {
+      const response = await this.client.post('/api/v1/billing/billing-portal');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   private handleError(error: any): Error {
     if (error.response) {
       // Server responded with error status
@@ -674,6 +747,14 @@ export const {
   applyCodeChanges,
   gestureDetect,
   gestureAction,
+  createSubscription,
+  updateSubscription,
+  cancelSubscription,
+  getSubscription,
+  getUsageStats,
+  getAvailablePlans,
+  getBillingInvoices,
+  createBillingPortalSession,
 } = apiClient;
 
 export default apiClient;
