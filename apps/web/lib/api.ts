@@ -698,6 +698,97 @@ class ApiClient {
     }
   }
 
+  // Organization methods
+  async createOrganization(name: string, description?: string): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/org/create', { name, description });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async listOrganizations(): Promise<any[]> {
+    try {
+      const response = await this.client.get('/api/v1/org/list');
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async inviteMember(orgId: number, email: string, role: string = 'developer'): Promise<any> {
+    try {
+      const response = await this.client.post(`/api/v1/org/${orgId}/invite`, { email, role });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getOrgMembers(orgId: number): Promise<any[]> {
+    try {
+      const response = await this.client.get(`/api/v1/org/${orgId}/members`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async removeMember(orgId: number, userId: number): Promise<void> {
+    try {
+      await this.client.delete(`/api/v1/org/${orgId}/members/${userId}`);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateMemberRole(orgId: number, userId: number, role: string): Promise<any> {
+    try {
+      const response = await this.client.put(`/api/v1/org/${orgId}/members/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Project methods
+  async createProject(orgId: number, name: string, description?: string, repoId?: number): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/project/create', { org_id: orgId, name, description, repo_id: repoId });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async listProjects(orgId: number): Promise<any[]> {
+    try {
+      const response = await this.client.get('/api/v1/project/list', { params: { org_id: orgId } });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async getProjectDetails(projectId: number): Promise<any> {
+    try {
+      const response = await this.client.get(`/api/v1/project/${projectId}`);
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async grantProjectPermission(projectId: number, userId: number, permission: string = 'read'): Promise<any> {
+    try {
+      const response = await this.client.post(`/api/v1/project/${projectId}/grant`, { user_id: userId, permission });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   private handleError(error: any): Error {
     if (error.response) {
       // Server responded with error status
@@ -755,6 +846,16 @@ export const {
   getAvailablePlans,
   getBillingInvoices,
   createBillingPortalSession,
+  createOrganization,
+  listOrganizations,
+  inviteMember,
+  getOrgMembers,
+  removeMember,
+  updateMemberRole,
+  createProject,
+  listProjects,
+  getProjectDetails,
+  grantProjectPermission,
 } = apiClient;
 
 export default apiClient;
