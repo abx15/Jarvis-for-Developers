@@ -132,3 +132,28 @@ venv.bak/
 
 # pipenv
 Pipfile.lock
+
+# Python virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Turbo
+.turbo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

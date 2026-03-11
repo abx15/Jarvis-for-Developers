@@ -6,6 +6,7 @@ from datetime import datetime
 from config import settings
 from database.connection import engine, Base
 from routes import agents, repo, autocode, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, agents_orchestrator, editor_collab, devops, billing, stripe_webhook, org, project
+from routes.auth import get_current_user
 from ws import ai_stream_ws
 import os
 from utils.logger import logger
