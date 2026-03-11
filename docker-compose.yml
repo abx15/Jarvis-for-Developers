@@ -1,35 +1,58 @@
-version: '3.8'
-
 services:
-  gateway:
+  frontend:
     build:
       context: .
-      dockerfile: apps/api/gateway/Dockerfile
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - jarvis-network
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
       - "8000:8000"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
-      - AGENT_SERVICE_URL=http://agent-service:8001
-      - REPO_SERVICE_URL=http://repo-service:8002
-      - BUG_SERVICE_URL=http://bug-service:8003
-      - DEVOPS_SERVICE_URL=http://devops-service:8004
-      - BILLING_SERVICE_URL=http://billing-service:8005
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - redis
-      - agent-service
-      - repo-service
-      - bug-service
-      - devops-service
-      - billing-service
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   agent-service:
-    build: 
+    build:
       context: .
       dockerfile: services/agent-service/Dockerfile
     ports:
       - "8001:8001"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
+      - SERVICE_NAME=agent-service
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   repo-service:
     build:
@@ -37,8 +60,20 @@ services:
       dockerfile: services/repo-service/Dockerfile
     ports:
       - "8002:8002"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
+      - SERVICE_NAME=repo-service
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   bug-service:
     build:
@@ -46,8 +81,20 @@ services:
       dockerfile: services/bug-service/Dockerfile
     ports:
       - "8003:8003"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
+      - SERVICE_NAME=bug-service
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   devops-service:
     build:
@@ -55,8 +102,20 @@ services:
       dockerfile: services/devops-service/Dockerfile
     ports:
       - "8004:8004"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
+      - SERVICE_NAME=devops-service
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8004/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   billing-service:
     build:
@@ -64,10 +123,33 @@ services:
       dockerfile: services/billing-service/Dockerfile
     ports:
       - "8005:8005"
+    env_file: .env
     environment:
-      - REDIS_HOST=redis
+      - SERVICE_NAME=billing-service
+      - DATABASE_URL=postgresql://neondb_owner:npg_In3fFgkR5KTa@ep-wandering-night-a4zi29rn-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8005/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    networks:
+      - jarvis-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  jarvis-network:
+    driver: bridge

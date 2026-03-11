@@ -3,6 +3,11 @@ from typing import List, Optional
 
 
 class Settings(BaseSettings):
+    model_config = {
+        "extra": "ignore",
+        "env_file": ".env"
+    }
+    
     # App settings
     APP_NAME: str = "AI Developer OS"
     VERSION: str = "0.1.0"
@@ -25,7 +30,7 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
     
     # CORS
-    ALLOWED_HOSTS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    ALLOWED_HOSTS: str = "http://localhost:3000,http://127.0.0.1:3000"
     
     # File storage
     UPLOAD_DIR: str = "uploads"
@@ -44,9 +49,6 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_PUBLIC_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
-    
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()

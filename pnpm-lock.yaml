@@ -26,12 +26,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@ai-dev-os/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@ai-dev-os/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@mediapipe/camera_utils':
         specifier: ^0.3.1675466862
         version: 0.3.1675466862

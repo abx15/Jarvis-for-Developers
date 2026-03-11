@@ -288,6 +288,105 @@ CREATE TRIGGER update_subscriptions_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Organizations table for team management
+CREATE TABLE IF NOT EXISTS organizations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    avatar TEXT,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Organization members table for user-organization relationships
+CREATE TABLE IF NOT EXISTS organization_members (
+    id SERIAL PRIMARY KEY,
+    organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL DEFAULT 'member', -- 'owner', 'admin', 'member'
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(organization_id, user_id)
+);
+
+-- Bugs table for issue tracking
+CREATE TABLE IF NOT EXISTS bugs (
+    id SERIAL PRIMARY KEY,
+    repo_id INTEGER NOT NULL REFERENCES repos(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    severity VARCHAR(50) DEFAULT 'medium', -- 'low', 'medium', 'high', 'critical'
+    status VARCHAR(50) DEFAULT 'open', -- 'open', 'in_progress', 'resolved', 'closed'
+    bug_type VARCHAR(50), -- 'error', 'performance', 'security', 'ui', 'logic'
+    file_path TEXT,
+    line_number INTEGER,
+    code_snippet TEXT,
+    stack_trace TEXT,
+    ai_analysis JSONB, -- AI-generated analysis and suggestions
+    reported_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Agent tasks table for AI task tracking
+CREATE TABLE IF NOT EXISTS agent_tasks (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    repo_id INTEGER REFERENCES repos(id) ON DELETE SET NULL,
+    task_type VARCHAR(50) NOT NULL, -- 'code_generation', 'bug_fix', 'refactor', 'analysis', 'optimization'
+    task_description TEXT NOT NULL,
+    task_input JSONB, -- Input data for the task
+    task_output JSONB, -- Output/results from the task
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'running', 'completed', 'failed'
+    agent_type VARCHAR(50), -- 'openai', 'anthropic', 'local', 'custom'
+    confidence_score DECIMAL(3,2) DEFAULT 0.00, -- 0.00 to 1.00
+    execution_time_seconds INTEGER,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Comments for new tables
+COMMENT ON TABLE organizations IS 'Organizations/teams for collaborative development';
+COMMENT ON TABLE organization_members IS 'Membership relationships between users and organizations';
+COMMENT ON TABLE bugs IS 'Bug and issue tracking with AI analysis';
+COMMENT ON TABLE agent_tasks IS 'AI agent task execution tracking';
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_organizations_created_by ON organizations(created_by);
+CREATE INDEX IF NOT EXISTS idx_organizations_slug ON organizations(slug);
+CREATE INDEX IF NOT EXISTS idx_organizations_is_active ON organizations(is_active);
+CREATE INDEX IF NOT EXISTS idx_organization_members_organization_id ON organization_members(organization_id);
+CREATE INDEX IF NOT EXISTS idx_organization_members_user_id ON organization_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_organization_members_role ON organization_members(role);
+CREATE INDEX IF NOT EXISTS idx_bugs_repo_id ON bugs(repo_id);
+CREATE INDEX IF NOT EXISTS idx_bugs_severity ON bugs(severity);
+CREATE INDEX IF NOT EXISTS idx_bugs_status ON bugs(status);
+CREATE INDEX IF NOT EXISTS idx_bugs_bug_type ON bugs(bug_type);
+CREATE INDEX IF NOT EXISTS idx_bugs_reported_by ON bugs(reported_by);
+CREATE INDEX IF NOT EXISTS idx_bugs_assigned_to ON bugs(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_user_id ON agent_tasks(user_id);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_repo_id ON agent_tasks(repo_id);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_task_type ON agent_tasks(task_type);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_status ON agent_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_type ON agent_tasks(agent_type);
+
+-- Triggers for new tables
+CREATE TRIGGER update_organizations_updated_at 
+    BEFORE UPDATE ON organizations 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_bugs_updated_at 
+    BEFORE UPDATE ON bugs 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Comments for billing tables
 COMMENT ON TABLE subscriptions IS 'User subscription plans and billing information';
 COMMENT ON TABLE usage_logs IS 'Usage tracking for billing and limits';

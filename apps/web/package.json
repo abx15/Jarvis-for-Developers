@@ -10,8 +10,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-dev-os/config": "workspace:*",
-    "@ai-dev-os/ui": "workspace:*",
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
     "@monaco-editor/react": "^4.6.0",

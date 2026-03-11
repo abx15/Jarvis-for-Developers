@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from config import settings
 from database.connection import engine, Base
@@ -30,7 +31,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_HOSTS,
+    allow_origins=[host.strip() for host in settings.ALLOWED_HOSTS.split(',')],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,7 +66,59 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    health_status = {"status": "healthy", "checks": {}}
+    
+    # Check Database
+    try:
+        from sqlalchemy import text
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        health_status["checks"]["database"] = "up"
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["database"] = f"down: {str(e)}"
+
+    # Check Redis
+    try:
+        import redis
+        r = redis.from_url(settings.REDIS_URL)
+        r.ping()
+        health_status["checks"]["redis"] = "up"
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["redis"] = f"down: {str(e)}"
+
+    # Check AI Services
+    try:
+        # Basic AI service connectivity check
+        if settings.OPENAI_API_KEY:
+            health_status["checks"]["openai"] = "configured"
+        else:
+            health_status["checks"]["openai"] = "not_configured"
+    except Exception as e:
+        health_status["checks"]["openai"] = f"error: {str(e)}"
+
+    return health_status
+
+
+@app.get("/health/ready")
+async def readiness_check():
+    """Readiness probe for Kubernetes"""
+    try:
+        # Check if database is accessible and basic tables exist
+        from sqlalchemy import text
+        with engine.connect() as connection:
+            connection.execute(text("SELECT COUNT(*) FROM users"))
+        
+        return {"status": "ready"}
+    except Exception as e:
+        return {"status": "not_ready", "error": str(e)}
+
+
+@app.get("/health/live")
+async def liveness_check():
+    """Liveness probe for Kubernetes"""
+    return {"status": "alive", "timestamp": datetime.utcnow().isoformat()}
 
 
 if __name__ == "__main__":
