@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: jarvis/api-gateway:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '200m'
+              memory: '256Mi'
+          envFrom:
+            - configMapRef:
+                name: jarvis-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-service
+  template:
+    metadata:
+      labels:
+        app: agent-service
+    spec:
+      containers:
+        - name: agent-service
+          image: jarvis/agent-service:latest
+          ports:
+            - containerPort: 8001
+          resources:
+            limits:
+              cpu: '1'
+              memory: '1Gi'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repo-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: repo-service
+  template:
+    metadata:
+      labels:
+        app: repo-service
+    spec:
+      containers:
+        - name: repo-service
+          image: jarvis/repo-service:latest
+          ports:
+            - containerPort: 8002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bug-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bug-service
+  template:
+    metadata:
+      labels:
+        app: bug-service
+    spec:
+      containers:
+        - name: bug-service
+          image: jarvis/bug-service:latest
+          ports:
+            - containerPort: 8003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-service
+  template:
+    metadata:
+      labels:
+        app: devops-service
+    spec:
+      containers:
+        - name: devops-service
+          image: jarvis/devops-service:latest
+          ports:
+            - containerPort: 8004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: billing-service
+  template:
+    metadata:
+      labels:
+        app: billing-service
+    spec:
+      containers:
+        - name: billing-service
+          image: jarvis/billing-service:latest
+          ports:
+            - containerPort: 8005
