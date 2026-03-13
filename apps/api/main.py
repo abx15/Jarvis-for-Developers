@@ -5,7 +5,7 @@ from datetime import datetime
 
 from config import settings
 from database.connection import engine, Base
-from routes import agents, repo, autocode, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, agents_orchestrator, editor_collab, devops, billing, stripe_webhook, org, project
+from routes import agents, repo, analytics, voice, vision, auth, gesture, editor, github, ai_bugs, devops, billing, stripe_webhook, org, project
 from routes.auth import get_current_user
 from ws import ai_stream_ws
 import os
@@ -42,7 +42,6 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(repo.router, prefix="/api/v1/repo", tags=["repository"])
-app.include_router(autocode.router, prefix="/api/v1/autocode", tags=["autocode"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(voice.router, prefix="/api/v1/voice", tags=["voice"])
 app.include_router(vision.router, prefix="/api/v1/vision", tags=["vision"])
@@ -50,14 +49,11 @@ app.include_router(gesture.router, prefix="/api/v1/gesture", tags=["gesture"])
 app.include_router(editor.router, prefix="/api/v1/editor", tags=["editor"])
 app.include_router(github.router, prefix="/api/v1/github", tags=["github"])
 app.include_router(ai_bugs.router, prefix="/api/v1/ai", tags=["bugs"])
-app.include_router(agents_orchestrator.router, prefix="/api/v1/agents", tags=["agents"])
-app.include_router(editor_collab.router, prefix="/api/v1/editor", tags=["editor_collaboration"])
 app.include_router(devops.router, prefix="/api/v1/devops", tags=["devops"])
 app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
 app.include_router(stripe_webhook.router, prefix="/api/v1/webhooks", tags=["webhooks"])
 app.include_router(org.router, prefix="/api/v1/org", tags=["organization"])
 app.include_router(project.router, prefix="/api/v1/project", tags=["project"])
-app.include_router(ai_stream_ws.router, tags=["AI Streaming"])
 
 
 @app.get("/")

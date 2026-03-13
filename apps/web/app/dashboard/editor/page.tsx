@@ -6,7 +6,12 @@ import { CodeEditor } from '@/components/editor/CodeEditor'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { AISuggestionsPanel } from '@/components/editor/AISuggestionsPanel'
 import apiClient from '@/lib/api'
-import { toast } from '@ai-dev-os/ui' // Assuming toast is available
+
+const toast = {
+  success: (message: string) => alert(`Success: ${message}`),
+  error: (message: string) => alert(`Error: ${message}`),
+  info: (message: string) => alert(`Info: ${message}`)
+}
 
 export default function EditorDashboard() {
   const [files, setFiles] = useState<any[]>([])

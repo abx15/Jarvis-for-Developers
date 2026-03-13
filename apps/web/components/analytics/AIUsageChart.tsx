@@ -49,7 +49,7 @@ export function AIUsageChart({ aiPercentage }: Props) {
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={COLORS[index % COLORS.length] || '#000000'}
                   />
                 ))}
               </Pie>

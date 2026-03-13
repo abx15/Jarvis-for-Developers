@@ -13,7 +13,7 @@ from services.docker_generator import DockerfileGenerator
 from services.cicd_generator import CICDGenerator
 from services.infra_analyzer import InfrastructureAnalyzer
 from utils.logger import logger
-from utils.auth import get_current_user
+from routes.auth import get_current_user
 from models.user import User
 
 router = APIRouter()

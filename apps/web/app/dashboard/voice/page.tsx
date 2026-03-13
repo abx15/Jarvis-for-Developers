@@ -92,7 +92,7 @@ export default function VoiceCodingPage() {
 
           <VoiceCommandExecutor
             command={lastCommand}
-            repoId={selectedRepo}
+            {...(selectedRepo && { repoId: selectedRepo })}
             onComplete={status => {
               setHistory((prev: any) =>
                 prev.map((item: any, i: number) => (i === 0 ? { ...item, status } : item))

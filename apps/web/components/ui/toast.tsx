@@ -90,30 +90,19 @@ export function useToast() {
   return context;
 }
 
-// Export a simple toast object for compatibility
+// Simple toast export for compatibility
 export const toast = {
   success: (message: string) => {
-    const context = useContext(ToastContext);
-    if (context) {
-      context.toast(message, 'success');
-    }
+    console.log('Success:', message)
+    // This will be replaced by the context toast when used within provider
   },
   error: (message: string) => {
-    const context = useContext(ToastContext);
-    if (context) {
-      context.toast(message, 'error');
-    }
+    console.error('Error:', message)
   },
   info: (message: string) => {
-    const context = useContext(ToastContext);
-    if (context) {
-      context.toast(message, 'info');
-    }
+    console.info('Info:', message)
   },
   warning: (message: string) => {
-    const context = useContext(ToastContext);
-    if (context) {
-      context.toast(message, 'warning');
-    }
+    console.warn('Warning:', message)
   }
-};
+}

@@ -7,8 +7,7 @@ from database.connection import get_db
 from apps.api.models.user import User
 from services.billing_service import get_billing_service, SUBSCRIPTION_PLANS
 from services.usage_tracker import UsageTracker
-from utils.auth import get_current_user
-from utils.logger import logger
+from routes.auth import get_current_user
 
 router = APIRouter()
 

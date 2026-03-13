@@ -93,7 +93,7 @@ export default function AutoCodeDashboard() {
       setPlan(prev =>
         prev.map((s, idx) => (idx === i ? { ...s, status: 'executing' } : s))
       )
-      addLog(`Executing step ${i + 1}: ${step.description}`)
+      addLog(`Executing step ${i + 1}: ${step?.description || 'Unknown step'}`)
 
       try {
         const result = await api.executeCodeStep(step, repoId || undefined)
