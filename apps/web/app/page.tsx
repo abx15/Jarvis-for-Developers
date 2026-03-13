@@ -169,9 +169,21 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Development?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">Get started today and experience the power of AI-assisted development</p>
-          <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105" asChild>
-            <Link href="/dashboard">Start Building Now</Link>
-          </Button>
+          {isAuthenticated ? (
+            <Link 
+              href="/dashboard" 
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 inline-block"
+            >
+              Start Building Now
+            </Link>
+          ) : (
+            <Link 
+              href="/register" 
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 inline-block"
+            >
+              Get Started Now
+            </Link>
+          )}
         </div>
       </section>
     </main>
