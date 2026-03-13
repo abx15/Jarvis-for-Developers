@@ -1,7 +1,19 @@
+'use client'
+
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
       {/* Navigation */}
@@ -19,21 +31,20 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/repo">Repository</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/voice">Voice</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/vision">Vision</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Link href="/dashboard" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                    Login
+                  </Link>
+                  <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -52,12 +63,29 @@ export default function Home() {
               Intelligent development platform with AI assistance, voice control, and vision understanding. Transform the way you code.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105" asChild>
-                <Link href="/dashboard">Get Started</Link>
-              </Button>
-              <Button variant="outline" size="lg" className="border-gray-300 text-gray-800 hover:bg-gray-50 px-8 py-3 text-lg font-medium transition-all duration-300" asChild>
-                <Link href="/docs">Documentation</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Link 
+                  href="/dashboard" 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link 
+                    href="/register" 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    Get Started
+                  </Link>
+                  <Link 
+                    href="/login" 
+                    className="border border-gray-300 text-gray-800 px-8 py-3 text-lg font-medium hover:bg-gray-50 transition-all duration-300"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

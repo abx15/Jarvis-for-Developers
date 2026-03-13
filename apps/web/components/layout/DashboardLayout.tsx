@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   LayoutDashboard,
   MessageSquare,
@@ -16,7 +17,8 @@ import {
   X,
   Bot,
   FileText,
-  BarChart3
+  BarChart3,
+  LogOut
 } from 'lucide-react'
 
 const navigation = [
@@ -40,6 +42,35 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [isLoading, isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -105,14 +136,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex-shrink-0">
               <img
                 className="h-8 w-8 rounded-full"
-                src="https://ui-avatars.com/api/?name=Admin+User&background=0d47a1&color=fff"
+                src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0d47a1&color=fff`}
                 alt="User avatar"
               />
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">Admin User</p>
-              <p className="text-xs text-gray-500">admin@aidev.os</p>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-700">{user?.name || 'User'}</p>
+              <p className="text-xs text-gray-500">{user?.email || 'user@example.com'}</p>
             </div>
+            <button
+              onClick={handleLogout}
+              className="p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -139,7 +177,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   <img
                     className="h-8 w-8 rounded-full"
-                    src="https://ui-avatars.com/api/?name=Admin+User&background=0d47a1&color=fff"
+                    src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0d47a1&color=fff`}
                     alt="User avatar"
                   />
                 </button>
