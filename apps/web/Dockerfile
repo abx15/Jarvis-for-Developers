@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY apps/web/package.json ./apps/web/
 COPY package.json ./
+COPY pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install
@@ -29,6 +30,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 
-EXPOSE 3000
+EXPOSE 3001
 
-CMD ["npm", "start", "--prefix", "apps/web"]
+CMD ["pnpm", "start", "--filter", "@ai-dev-os/web"]

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import DashboardLayout from '@/components/layout/DashboardLayout'
 import {
   PlanSelector,
   BillingDashboard,
@@ -8,7 +9,7 @@ import {
 } from '@/components/billing/BillingComponents'
 import { apiClient } from '@/lib/api'
 import { useToast } from '@/components/ui/toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CreditCard, TrendingUp, AlertCircle, Download } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function BillingPage() {
@@ -90,54 +91,55 @@ export default function BillingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Billing & Subscriptions
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Manage your plan, view usage, and download invoices.
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Billing & Subscriptions</h1>
+          <p className="text-gray-600 mt-2">Manage your plan, view usage, and download invoices</p>
+        </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="plans">Plans</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview">
-          {usageData && (
-            <BillingDashboard
-              usageData={usageData}
-              onManageBilling={handleManageBilling}
+          <TabsContent value="overview">
+            {usageData && (
+              <BillingDashboard
+                usageData={usageData}
+                onManageBilling={handleManageBilling}
+                isLoading={isActionLoading}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="plans">
+            <PlanSelector
+              plans={plans}
+              currentPlan={usageData?.plan || 'free'}
+              onUpgrade={handleUpgrade}
+              onCancel={handleCancel}
               isLoading={isActionLoading}
             />
-          )}
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="plans">
-          <PlanSelector
-            plans={plans}
-            currentPlan={usageData?.plan || 'free'}
-            onUpgrade={handleUpgrade}
-            onCancel={handleCancel}
-            isLoading={isActionLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="history">
-          <InvoiceList invoices={invoices} isLoading={isLoading} />
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="history">
+            <InvoiceList invoices={invoices} isLoading={isLoading} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </DashboardLayout>
   )
 }
